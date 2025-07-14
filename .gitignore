@@ -400,3 +400,8 @@ FodyWeavers.xsd
 # Environment variables
 .env
 .env.local
+.env.production
+
+# Secrets (keep templates)
+!.env.template
+!.env.development
