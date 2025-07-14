@@ -1,0 +1,57 @@
+# Docker Compose Configuration for Production
+# Use with: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+
+version: '3.8'
+
+services:
+  # Production overrides for .NET API
+  clickup-api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+    # Remove development volumes
+    volumes:
+      - ./logs:/app/logs
+    # Resource limits for production
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+  # Production overrides for MCP Server
+  mcp-server:
+    environment:
+      - NODE_ENV=production
+      - LOG_LEVEL=warn
+    # Remove development volumes and debug ports
+    volumes:
+      - ./logs:/app/logs
+    ports:
+      - "3000:3000"
+    # Resource limits for production
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+
+  # Production overrides for Redis
+  redis:
+    # Don't expose Redis port in production
+    ports: []
+    # Resource limits for production
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+        reservations:
+          memory: 128M
+          cpus: '0.1'

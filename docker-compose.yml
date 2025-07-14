@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # Redis caching layer
+  redis:
+    build:
+      context: ./redis
+      dockerfile: Dockerfile
+    container_name: clickup-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - clickup-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # .NET API Backend
+  clickup-api:
+    build:
+      context: .
+      dockerfile: src/ClickUp.Web.API/Dockerfile
+    container_name: clickup-api
+    ports:
+      - "${API_PORT:-5000}:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${API_ENVIRONMENT:-Development}
+      - ConnectionStrings__Redis=${REDIS_CONNECTION_STRING:-redis://redis:6379}
+      - ClickUp__BaseUrl=${CLICKUP_BASE_URL:-https://api.clickup.com/api/v2}
+      - ClickUp__ApiToken=${CLICKUP_API_TOKEN}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - clickup-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # MCP Server for Claude Code integration
+  mcp-server:
+    build:
+      context: .
+      dockerfile: src/mcp-server/Dockerfile
+    container_name: clickup-mcp-server
+    ports:
+      - "${MCP_PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - CLICKUP_API_TOKEN=${CLICKUP_API_TOKEN}
+      - CLICKUP_BASE_URL=${CLICKUP_BASE_URL:-https://api.clickup.com/api/v2}
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    depends_on:
+      redis:
+        condition: service_healthy
+      clickup-api:
+        condition: service_healthy
+    networks:
+      - clickup-network
+    restart: unless-stopped
+    volumes:
+      - ./logs:/app/logs
+
+networks:
+  clickup-network:
+    driver: bridge
+    name: ${DOCKER_NETWORK:-clickup-network}
+
+volumes:
+  redis_data:
+    driver: local
