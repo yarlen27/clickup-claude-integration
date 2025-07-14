@@ -92,7 +92,7 @@ jobs:
       uses: docker/setup-buildx-action@v3
     
     - name: Build .NET API Docker image
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: .
         file: src/ClickUp.Web.API/Dockerfile
@@ -102,7 +102,7 @@ jobs:
         cache-to: type=gha,mode=max
     
     - name: Build MCP Server Docker image
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: .
         file: src/mcp-server/Dockerfile
@@ -112,7 +112,7 @@ jobs:
         cache-to: type=gha,mode=max
     
     - name: Build Redis Docker image
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: redis
         file: redis/Dockerfile
