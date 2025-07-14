@@ -1,0 +1,39 @@
+# Docker Compose Override for Development
+# This file is automatically loaded in development environments
+
+version: '3.8'
+
+services:
+  # Development overrides for .NET API
+  clickup-api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+    volumes:
+      # Mount source code for hot reload (if using dotnet watch)
+      - ./src:/app/src:ro
+      - ./logs:/app/logs
+    ports:
+      - "5000:80"
+      - "5001:443"
+
+  # Development overrides for MCP Server  
+  mcp-server:
+    environment:
+      - NODE_ENV=development
+      - LOG_LEVEL=debug
+    volumes:
+      # Mount source for development
+      - ./src/mcp-server/src:/app/src:ro
+      - ./logs:/app/logs
+    # Enable debugging port
+    ports:
+      - "3000:3000"
+      - "9229:9229"  # Node.js debug port
+
+  # Development overrides for Redis
+  redis:
+    ports:
+      - "6379:6379"
+    # Enable Redis CLI access for development
+    command: redis-server /usr/local/etc/redis/redis.conf --appendonly yes
