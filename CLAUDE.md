@@ -484,11 +484,60 @@ Foundation → Core Services → MCP Integration → Tools Implementation
    Week 1      Week 2         Week 3             Week 4-6
 ```
 
+## Claude Code Auto-Approve Configuration
+
+Para evitar confirmaciones constantes durante desarrollo, configurar auto-approve:
+
+### **Método 1: Comando Slash**
+```
+/settings auto_approve_bash_commands true
+```
+
+### **Método 2: Archivo de Settings**
+Crear/editar `~/.claude/settings.json`:
+```json
+{
+  "auto_approve_bash_commands": true,
+  "auto_approve_file_edits": false
+}
+```
+
+### **Método 3: Settings Locales del Proyecto**
+En `.claude/settings.local.json`, agregar comandos permitidos:
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet:*)",
+      "Bash(git:*)",
+      "Bash(gh:*)",
+      "Bash(npm:*)",
+      "Bash(node:*)",
+      "Bash(docker:*)",
+      "Bash(curl:*)",
+      "Bash(echo:*)",
+      "Bash(mkdir:*)",
+      "Bash(chmod:*)",
+      "Bash(cat:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(rm:*)",
+      "Bash(sleep:*)",
+      "Bash(kill:*)",
+      "Bash(ps:*)"
+    ]
+  }
+}
+```
+
+**⚠️ Importante**: Reiniciar Claude Code después de cambiar configuración.
+
 ## Key Configuration
 - ClickUp API token in user secrets or environment variables
 - Docker networking for container communication
 - Redis caching for frequently accessed data
 - MCP server registration in Claude Code settings
+- Auto-approve configurado para desarrollo eficiente
 
 ## Development Patterns
 - Use `IClickUpService` interface for all ClickUp API operations
